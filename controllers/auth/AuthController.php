@@ -137,7 +137,8 @@ class AuthController extends BaseController
             if (!empty($token)) {
                 return $this->authSuccess($client);
             }
-           // return $this->authCancel($client);
+            return $this->returnError(401, 'wechat auth fail!');
+         
         }
         
     }
