@@ -131,9 +131,8 @@ class AuthController extends BaseController
     {
        
         $client = new WechatAuth();
-        $request = Yii::$app->getRequest();
         // Get the access_token and save them to the session.
-         if (($code = $request->get('code')) !== null) {
+         if (($code = Yii::$app->request->post('code')) !== null) {
             $token = $client->fetchAccessToken($code);
             if (!empty($token)) {
                 return $this->authSuccess($client);
