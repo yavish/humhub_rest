@@ -1,0 +1,21 @@
+<?php
+return array (
+  '<strong>REST</strong> Configuration' => 'Configuração <strong>REST</strong>',
+  'Access Tokens' => 'Tokens de acesso',
+  'Add Access Token' => 'Adicionar Token de Acesso',
+  'Allow Bearer Authentication' => 'Permitir autenticação do portador',
+  'Allow HTTP Basic Authentication' => 'Permitir autenticação básica HTTP',
+  'Allow JWT Authentication' => 'Permitir autenticação JWT',
+  'Allow Query Param Bearer Authentication' => 'Permitir autenticação do portador do parâmetro de consulta',
+  'Bearer Access Token Successfully Revoked' => 'Token de acesso ao portador revogado com sucesso',
+  'Bearer Auth' => 'Autorização do Portador',
+  'Enabled for all registered users' => 'Habilitado para todos os usuários registrados',
+  'Expiration' => 'Validade',
+  'General' => 'Geral',
+  'JWT Auth' => 'Autenticação JWT',
+  'JWT Key' => 'Chave JWT',
+  'JWT Token Expiration' => 'Validade do Token JWT',
+  'No enabled modules found with additional REST API endpoints.' => 'Nenhum módulo habilitado encontrado com endpoints de API REST adicionais.',
+  'Token' => 'Token',
+  'User' => 'Usuário',
+);
