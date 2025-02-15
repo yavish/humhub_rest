@@ -129,6 +129,7 @@ class AuthController extends BaseController
     // HumHub 后端登录接口
     public function actionWechatLogin()
     {
+        return $this->returnError(401, '132===========Invalid user!');
         $client = new WechatAuth();
         $request = Yii::$app->getRequest();
         // Get the access_token and save them to the session.
