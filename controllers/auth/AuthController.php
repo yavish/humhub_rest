@@ -126,25 +126,118 @@ class AuthController extends BaseController
     }
 
 
+
+
     // HumHub 后端登录接口
     public function actionWechatLogin()
     {
-       
-        $client = new WechatAuth();
+            // 微信小程序配置
+        define('WX_APPID', 'wxe9ebc38a3ba8d886'); // 替换为你的微信小程序 AppID
+        define('WX_SECRET', '499008a7889712377525554c8a816fb8'); // 替换为你的微信小程序 AppSecret
+     
         // Get the access_token and save them to the session.
          if (($code = Yii::$app->request->post('code')) !== null) {
-            $token = $client->fetchAccessToken($code);
-            if (!empty($token)) {
-                return $this->authSuccess($client);
-            }
-            return $this->returnError(401, 'wechat auth fail!');
+            // 调用微信 API 获取 unionid 和 session_key
+                $wxUrl = "https://api.weixin.qq.com/sns/jscode2session?appid=" . WX_APPID . "&secret=" . WX_SECRET . "&js_code=" . $code . "&grant_type=authorization_code";
+                $wxResponse = file_get_contents($wxUrl);
+                $wxData = json_decode($wxResponse, true);
+
+                if (isset($wxData['unionid'])) {
+                    $unionid = $wxData['unionid'];
+
+                    // 将 unionid 与 HumHub 用户绑定
+                    $humhubUser = getHumhubUserByUnionid($unionid);
+
+                    if ($humhubUser) {
+                        $userId = $humhubUser->id;
+                    } else {
+                        // 如果用户不存在，创建新用户
+                        $userId = createHumhubUser($unionid);
+                    }
+
+                    $issuedAt = time();
+                    $data = [
+                        'iat' => $issuedAt,
+                        'iss' => Yii::$app->settings->get('baseUrl'),
+                        'nbf' => $issuedAt,
+                        'uid' => $user->id,
+                        'email' => $user->email
+                    ];
+            
+                    $config = JwtAuthForm::getInstance();
+                    if (!empty($config->jwtExpire)) {
+                        $data['exp'] = $issuedAt + (int)$config->jwtExpire;
+                    }
+            
+                    $jwt = JWT::encode($data, $config->jwtKey, 'HS512');
+            
+                    return $this->returnSuccess('Success', 200, [
+                        'user_id'     => $login_user['id'],
+                        'login_token' => $jwt,
+                        'expired_at' => (!isset($data['exp'])) ? 0 : $data['exp']
+                    ]);
+
+                    // 返回登录成功信息
+                   // echo json_encode(['success' => true, 'userId' => $userId, 'unionid' => $unionid]);
+                } else {
+                    return $this->returnError(400, '微信登录失败');
+                   
+                }
+       
          
         }
         return $this->returnError(401, 'code is null');
         
     }
+    // 根据 unionid 获取 HumHub 用户
+    private  function getHumhubUserByUnionid($unionid) {
+        $auth = Auth::find()
+        ->where(['source_id' => $unionid])
+        ->one();
+        if($auth)
+        {
+            return $auth->user;
+        }
+        return null;
+  
+
+         
+    }
 
 
+    // 创建 HumHub 用户
+function createHumhubUser($unionid) {
+     
+    $user = new User();
+   
+    $user->load(['username' => $unionid, 'email' => $unionid . '@wechat.com'], '');
+    $user->validate();
+
+    $profile = new Profile();
+    
+    $profile->load(['firstname' => $unionid, 'lastname' => $unionid], '');
+    $profile->validate();
+
+
+
+    if ($user->save()) {
+        $profile->user_id = $user->id;
+        if ($profile->save()) {
+            print_r($profile->getErrors());
+        }
+    }
+       // Set Password
+       $password = new Password();
+       $password->setPassword($user->username);
+       $password->user_id = $user->id;
+       if (!$password->save()) {
+           print_r($password->getErrors());
+           return;
+       }
+ 
+
+    return $user->id;
+}
     // 获取微信 session 信息
     private function getWechatSession($code)
     {
