@@ -180,7 +180,7 @@ class AuthController extends BaseController
                     // 返回登录成功信息
                    // echo json_encode(['success' => true, 'userId' => $userId, 'unionid' => $unionid]);
                 } else {
-                    return $this->returnError(400, '微信登录失败');
+                    return $this->returnError(400,  $wxData['errcode']. '微信登录失败'. $code);
                    
                 }
        
